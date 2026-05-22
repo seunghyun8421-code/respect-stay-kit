@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Respect Stay — 나의 키트 찾기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FAFAF8;
+    --surface: #F3F2EE;
+    --border: #E0DED8;
+    --text-primary: #1C1C1A;
+    --text-secondary: #6B6A66;
+    --text-hint: #AEADA8;
+    --accent: #2C2C2A;
+    --accent-light: #EEEDEA;
+    --serif: 'Noto Serif KR', serif;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* ── INTRO ── */
+  .intro-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 36px 48px;
+    text-align: center;
+  }
+
+  .brand-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-hint);
+    font-weight: 500;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+
+  .intro-mark {
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 32px;
+  }
+
+  .intro-mark svg { width: 24px; height: 24px; stroke: var(--text-secondary); fill: none; stroke-width: 1.5; }
+
+  .intro-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+
+  .intro-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    margin-bottom: 36px;
+  }
+
+  .intro-meta {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 44px;
+  }
+
+  .meta-pill {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    max-width: 300px;
+    padding: 16px;
+    background: var(--accent);
+    color: #FAFAF8;
+    border: none;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  /* ── QUIZ ── */
+  .quiz-top {
+    padding: 28px 28px 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-hint);
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .q-text {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 6px;
+  }
+
+  .q-sub {
+    font-size: 13px;
+    color: var(--text-hint);
+    line-height: 1.6;
+  }
+
+  .options {
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .opt {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .opt:hover { background: var(--surface); }
+  .opt.sel {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .opt-num {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-hint);
+    flex-shrink: 0;
+    font-weight: 500;
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .opt.sel .opt-num {
+    background: var(--accent);
+    color: #FAFAF8;
+    border-color: var(--accent);
+  }
+
+  .opt-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+
+  .quiz-nav {
+    padding: 16px 28px 32px;
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  .btn-back {
+    width: 48px;
+    height: 48px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .btn-back:hover { background: var(--surface); }
+  .btn-back svg { width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 1.5; }
+
+  .btn-next {
+    flex: 1;
+    padding: 14px;
+    background: var(--accent);
+    color: #FAFAF8;
+    border: none;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: opacity 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-next.on { opacity: 1; }
+
+  /* ── RESULT ── */
+  .result-header {
+    padding: 48px 28px 32px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .result-brand {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-hint);
+    font-weight: 500;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  .result-chip {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 4px 12px;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .result-kitname {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  .result-tagline {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .result-body {
+    padding: 28px;
+    flex: 1;
+  }
+
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-hint);
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .kit-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    padding: 18px;
+    background: var(--surface);
+    border-radius: 4px;
+    margin-bottom: 28px;
+  }
+
+  .other-kits {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .other-kit {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    background: #fff;
+    transition: background 0.15s;
+  }
+  .other-kit:hover { background: var(--surface); }
+
+  .ok-name {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+
+  .ok-sub {
+    font-size: 11px;
+    color: var(--text-hint);
+    line-height: 1.5;
+  }
+
+  .result-btns {
+    padding: 0 28px 40px;
+  }
+
+  .btn-retry {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .btn-retry:hover { background: var(--surface); }
+
+  @media (min-width: 480px) {
+    body { padding: 40px 20px; align-items: flex-start; }
+    #app { min-height: auto; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- INTRO -->
+  <div class="screen active" id="s-intro">
+    <div class="intro-wrap">
+      <p class="brand-label">Respect Stay</p>
+      <div class="intro-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 20h-7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"/><path d="M16 19h6m-3-3v6"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
+      </div>
+      <h1 class="intro-title">지금 나에게<br>어울리는 기록은 무엇일까요</h1>
+      <p class="intro-desc">요즘의 나를 가볍게 들여다보는<br>몇 가지 질문으로 키트를 찾아드려요.</p>
+      <div class="intro-meta">
+        <span class="meta-pill">약 3분</span>
+        <span class="meta-pill">질문 6개</span>
+        <span class="meta-pill">키트 6종</span>
+      </div>
+      <button class="btn-primary" onclick="start()">나의 키트 찾기</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="s-quiz">
+    <div class="quiz-top">
+      <div class="progress-row">
+        <div class="progress-track"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+        <span class="progress-label" id="q-meta">1 / 6</span>
+      </div>
+      <p class="q-text" id="q-text"></p>
+      <p class="q-sub" id="q-sub"></p>
+    </div>
+    <div class="options" id="opts"></div>
+    <div class="quiz-nav">
+      <button class="btn-back" id="btn-back" onclick="back()" aria-label="이전으로">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="btn-next" id="btn-next" onclick="next()">다음 질문으로</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <div class="result-header">
+      <p class="result-brand">Respect Stay</p>
+      <p class="result-chip">추천 키트</p>
+      <p class="result-kitname" id="r-name"></p>
+      <p class="result-tagline" id="r-tagline"></p>
+    </div>
+    <div class="result-body">
+      <p class="section-title">이런 분께 어울려요</p>
+      <div class="kit-desc" id="r-desc"></div>
+      <p class="section-title">다른 키트도 살펴보기</p>
+      <div class="other-kits" id="r-others"></div>
+    </div>
+    <div class="result-btns">
+      <button class="btn-retry" onclick="restart()">처음부터 다시 하기</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const KITS = {
+  감사록: { name:"감사록", tagline:"지금 이 순간, 있는 것들을 보는 기록", desc:"일상 속 작은 것들에 자연스럽게 시선이 가는 분께 어울려요. 이미 내 곁에 있는 것들을 따뜻하게 발견하고 기록하는 시간이 될 거예요." },
+  꿈꿀록: { name:"꿈꿀록", tagline:"아직 오지 않은 나를 그려보는 기록", desc:"앞으로의 나에 대한 기대와 설렘이 있는 분께 어울려요. 바라는 것을 꺼내어 말로 써보면서 나만의 방향을 그려가는 시간이에요." },
+  돌이킴록: { name:"돌이킴록", tagline:"어린 나를 다시 만나는 기록", desc:"과거의 순간들이 문득 생각나고 궁금해지는 분께 어울려요. 그 시절의 나를 다시 만나며 지금의 나를 더 잘 이해하게 되는 시간이에요." },
+  사람록: { name:"사람록", tagline:"소중한 사람들을 다시 바라보는 기록", desc:"내 삶 속 사람들이 문득 소중하게 느껴지는 분께 어울려요. 관계를 천천히 들여다보고, 전하고 싶었던 마음을 기록하는 시간이에요." },
+  내몸록: { name:"내몸록", tagline:"몸의 신호에 귀 기울이는 기록", desc:"몸과 감각에 관심이 가고, 나를 잘 돌보고 싶은 분께 어울려요. 몸이 보내는 신호를 알아채며 나를 챙기는 시간을 만들어가요." },
+  칭찬록: { name:"칭찬록", tagline:"나의 좋은 점을 알아주는 기록", desc:"스스로의 좋은 면을 더 잘 발견하고 싶은 분께 어울려요. 작은 성취와 장점들을 직접 찾아내고 인정해주는 시간이 될 거예요." }
+};
+
+const QS = [
+  { text:"요즘 나는 어떤 시간이 좋던가요?", sub:"자연스럽게 끌리는 것을 골라주세요.", opts:[
+    { t:"지난 시절을 떠올리며 추억하는 시간", w:{돌이킴록:3,사람록:1} },
+    { t:"앞으로의 일을 상상하고 계획하는 시간", w:{꿈꿀록:3,칭찬록:1} },
+    { t:"아무 생각 없이 몸을 쉬게 하는 시간", w:{내몸록:3,감사록:1} },
+    { t:"소중한 사람들이 떠올라 따뜻해지는 시간", w:{사람록:3,감사록:1} }
+  ]},
+  { text:"혼자만의 시간에 나는 주로 무엇을 하나요?", sub:"평소 자연스럽게 하게 되는 것을 골라주세요.", opts:[
+    { t:"옛날 사진이나 물건을 꺼내 들여다봐요", w:{돌이킴록:3,사람록:1} },
+    { t:"나중에 해보고 싶은 것들을 떠올려요", w:{꿈꿀록:3,칭찬록:1} },
+    { t:"오늘 하루 내가 잘 지냈는지 돌아봐요", w:{칭찬록:2,감사록:2} },
+    { t:"주변 사람들이 잘 지내는지 생각해요", w:{사람록:3,돌이킴록:1} }
+  ]},
+  { text:"기록한다면 어떤 내용을 담고 싶나요?", sub:"가장 끌리는 것을 골라주세요.", opts:[
+    { t:"지나온 나의 이야기와 기억", w:{돌이킴록:3,사람록:1} },
+    { t:"오늘 하루 감사하고 좋았던 것들", w:{감사록:3,칭찬록:1} },
+    { t:"앞으로 이루고 싶은 것들", w:{꿈꿀록:3,내몸록:1} },
+    { t:"내 몸과 컨디션의 변화", w:{내몸록:3,감사록:1} }
+  ]},
+  { text:"이번 1박 2일이 끝났을 때, 어떤 기분이면 좋을까요?", sub:"가장 원하는 것을 골라주세요.", opts:[
+    { t:"\"나 자신을 좀 더 잘 알게 됐다\"", w:{돌이킴록:2,칭찬록:2} },
+    { t:"\"앞으로가 조금 더 기대된다\"", w:{꿈꿀록:3,감사록:1} },
+    { t:"\"몸도 마음도 가뿐해진 것 같다\"", w:{내몸록:3,감사록:1} },
+    { t:"\"주변 사람들이 새삼 소중하게 느껴진다\"", w:{사람록:3,칭찬록:1} }
+  ]},
+  { text:"요즘 내가 자주 쓰는 말이 있다면?", sub:"가장 가까운 것을 골라주세요.", opts:[
+    { t:"\"그때 그 시절 참 좋았는데\"", w:{돌이킴록:3,감사록:1} },
+    { t:"\"나중엔 이런 걸 해봐야지\"", w:{꿈꿀록:3,내몸록:1} },
+    { t:"\"오늘도 나름 잘 했어\"", w:{칭찬록:3,감사록:1} },
+    { t:"\"그 사람 요즘 어떻게 지내나\"", w:{사람록:3,돌이킴록:1} }
+  ]},
+  { text:"지금 나에게 '기록'은 어떤 의미에 가까운가요?", sub:"직관적으로 골라주세요.", opts:[
+    { t:"지나간 것들을 소중히 간직하는 것", w:{돌이킴록:2,사람록:2} },
+    { t:"지금 이 순간을 충분히 느끼는 것", w:{감사록:2,내몸록:2} },
+    { t:"앞으로의 나를 응원하는 것", w:{꿈꿀록:2,칭찬록:2} },
+    { t:"나를 더 잘 알아가는 여정", w:{칭찬록:2,돌이킴록:2} }
+  ]}
+];
+
+let cur=0, sel=null, scores={};
+
+function start() {
+  cur=0; sel=null;
+  scores={감사록:0,꿈꿀록:0,돌이킴록:0,사람록:0,내몸록:0,칭찬록:0};
+  show('s-quiz'); renderQ();
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function renderQ() {
+  const q=QS[cur];
+  document.getElementById('q-meta').textContent=`${cur+1} / ${QS.length}`;
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('q-sub').textContent=q.sub;
+  document.getElementById('pbar').style.width=((cur/QS.length)*100)+'%';
+  sel=null;
+  document.getElementById('btn-next').classList.remove('on');
+  const letters=['A','B','C','D'];
+  document.getElementById('opts').innerHTML=q.opts.map((o,i)=>
+    `<button class="opt" onclick="pick(${i},this)">
+      <span class="opt-num">${letters[i]}</span>
+      <span class="opt-text">${o.t}</span>
+    </button>`
+  ).join('');
+  document.getElementById('btn-back').style.display=cur===0?'none':'flex';
+}
+
+function pick(i,el) {
+  document.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); sel=i;
+  document.getElementById('btn-next').classList.add('on');
+}
+
+function next() {
+  if(sel===null) return;
+  const w=QS[cur].opts[sel].w;
+  Object.entries(w).forEach(([k,v])=>{ scores[k]=(scores[k]||0)+v; });
+  if(cur<QS.length-1){ cur++; renderQ(); }
+  else { showResult(); }
+}
+
+function back() { if(cur>0){ cur--; renderQ(); } }
+
+function showResult() {
+  document.getElementById('pbar').style.width='100%';
+  const top=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  renderResult(top); show('s-result');
+}
+
+function renderResult(key) {
+  const k=KITS[key];
+  document.getElementById('r-name').textContent=k.name;
+  document.getElementById('r-tagline').textContent=k.tagline;
+  document.getElementById('r-desc').textContent=k.desc;
+  const others=Object.entries(KITS).filter(([kk])=>kk!==key);
+  document.getElementById('r-others').innerHTML=others.map(([kk,kv])=>
+    `<button class="other-kit" onclick="renderResult('${kk}')">
+      <p class="ok-name">${kv.name}</p>
+      <p class="ok-sub">${kv.tagline.substring(0,14)}...</p>
+    </button>`
+  ).join('');
+}
+
+function restart() { show('s-intro'); }
+</script>
+</body>
+</html>
